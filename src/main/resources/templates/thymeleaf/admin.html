@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Mcb Java Junior Task</title>
+    <div th:replace="thymeleaf/fragments/header :: header-links"/>
+    <link rel="stylesheet" type="text/css" th:href="'/css/main.css'" />
+</head>
+<body>
+    <div th:replace="thymeleaf/fragments/header :: header-navbar"/>
+
+    <div class="container">
+        <div class="inner">
+            <div>
+                <h3>Create a new client</h3>
+                <input id="val-new-client" type="text"  class="form-control form__input" style="width: 200px"
+                       placeholder="New client" />
+                <button id="btn-add-client" class="btn btn-primary form__button">Create</button>
+            </div>
+            <br/><br/>
+            <form>
+                <h3>Change a total debt of the client</h3>
+                <input id="val-client-id" type="text"  class="form-control form__input" style="width: 330px"
+                       placeholder="Client ID" />
+                <input id="val-amount" type="number" min="0" class="form-control form__input" style="width: 100px"
+                       placeholder="Value"/>
+                <button type="submit" id="btn-add-debt" class="btn btn-danger form__button">Debt</button>
+                <button type="submit" id="btn-add-payt" class="btn btn-success form__button">Payt</button>
+            </form>
+            <br/><br/>
+            <div>
+                <h3>All clients</h3>
+                <button id="btn-update-table" class="btn btn-primary form__button">Update</button>
+                <br/>
+                <br/>
+                <table id="clients-table" class="table table-condensed">
+                    <thead style="font-weight: 600;">
+                    <tr>
+                        <td>ID</td>
+                        <td>Name</td>
+                        <td>Total Debt</td>
+                    </tr>
+                    </thead>
+                    <tbody id="clients-table-body">
+                    <tr th:each="client : ${clientsList}">
+                        <td th:text="${client.getId()}"></td>
+                        <td th:text="${client.getName()}"></td>
+                        <td th:text="${#numbers.formatDecimal(client.getTotalDebt(), 1, 2, 'POINT')}"></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div th:replace="thymeleaf/fragments/footer :: footer-scripts"/>
+    <script type="text/javascript">
+        $(document).ready(function() {
+            $("#btn-add-client").click(function(){
+                $.get("/rest/clients/add/" + $('#val-new-client').val() + "/", function(){
+                    updateTable();
+                    $("#val-new-client").val('');
+                });
+            });
+
+            $("#btn-add-debt").click(function(){
+                $.get("/rest/clients/" + $('#val-client-id').val() + "/debt/" + $('#val-amount').val() + "/",function(){
+                    updateTable();
+                    $("#val-client-id").val('');
+                    $("#val-amount").val('');
+                });
+            });
+
+            $("#btn-add-payt").click(function(){
+                $.get("/rest/clients/" + $('#val-client-id').val() + "/payt/" + $('#val-amount').val() + "/",function(){
+                    updateTable();
+                    $("#val-client-id").val('');
+                    $("#val-amount").val('');
+                });
+            });
+
+            $("#btn-update-table").click(function(){
+                updateTable();
+            });
+
+            function updateTable(){
+                $.get("/rest/clients/show/",function(data){
+                    var tableBody = '';
+                    $.each(data, function(key, value){
+                        tableBody += '<tr>';
+                        tableBody += '<td>' + value.id + '</td>';
+                        tableBody += '<td>' + value.name + '</td>';
+                        tableBody += '<td>' + parseFloat(value.totalDebt).toFixed(2) + '</td>';
+                        tableBody += '</tr>';
+                    });
+                    $('#clients-table-body').html(tableBody);
+                });
+            }
+        });
+    </script>
+</body>
+</html>

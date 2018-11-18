@@ -1,0 +1,15 @@
+.inner {
+    margin: 20px auto;
+    width: 600px;
+}
+
+.form__input {
+    display: inline-block;
+    vertical-align: middle;
+    margin-right: 12px;
+}
+
+.form__button {
+    display: inline-block;
+    vertical-align: middle;
+}

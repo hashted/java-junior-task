@@ -3,6 +3,7 @@ package com.mcb.javajuniortask.service;
 import com.mcb.javajuniortask.dto.ClientDTO;
 import com.mcb.javajuniortask.model.Client;
 import com.mcb.javajuniortask.model.Debt;
+import com.mcb.javajuniortask.model.Payment;
 import com.mcb.javajuniortask.repository.ClientRepository;
 
 import org.springframework.shell.standard.ShellComponent;
@@ -28,8 +29,10 @@ public class ClientService {
     public Iterable<ClientDTO> showAllClients() {
         return StreamSupport.stream(clientRepository.findAll().spliterator(), false).map(client -> {
             ClientDTO clientDTO = new ClientDTO();
+            clientDTO.setId(client.getId());
             clientDTO.setName(client.getName());
-            clientDTO.setTotalDebt(client.getDebts().stream().map(Debt::getValue).reduce(BigDecimal::add).orElse(BigDecimal.ZERO));
+            clientDTO.setTotalDebt(client.getDebts().stream().map(Debt::getValue).reduce(BigDecimal::add).orElse(BigDecimal.ZERO)
+                    .subtract(client.getPayts().stream().map(Payment::getValue).reduce(BigDecimal::add).orElse(BigDecimal.ZERO)));
             return clientDTO;
         }).collect(Collectors.toList());
     }
@@ -57,4 +60,19 @@ public class ClientService {
         return debt.getId();
     }
 
+    @ShellMethod("Pays for client debt")
+    @Transactional
+    public UUID payForClientDebt(@ShellOption UUID clientId, @ShellOption BigDecimal value) {
+        Client client = clientRepository.findOne(clientId);
+        Payment payt = new Payment();
+
+        payt.setValue(value);
+        payt.setId(UUID.randomUUID());
+        payt.setClient(client);
+
+        client.getPayts().add(payt);
+        clientRepository.save(client);
+
+        return payt.getId();
+    }
 }
